@@ -6,25 +6,24 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'Shqipja është gjuha fillestare dhe kalimi në anglisht funksionon',
+    'Ballina e re hapet dhe ndërrimi i gjuhës funksionon',
     (tester) async {
       SharedPreferences.setMockInitialValues({});
 
       await tester.pumpWidget(const StoreApp());
-
-      // Lejon inicializimin e state-it pa pritur animacionet e pafundme.
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('Produktet\ntona'), findsOneWidget);
-      expect(find.text('Kërko produkte'), findsWidgets);
+      expect(find.text('Dyqani Online'), findsOneWidget);
+      expect(find.text('Kryefaqja'), findsOneWidget);
+      expect(find.text('Shporta'), findsOneWidget);
 
       await tester.tap(find.text('EN').first);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('Our\nProducts'), findsOneWidget);
-      expect(find.text('Search products'), findsWidgets);
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Cart'), findsOneWidget);
     },
   );
 }
