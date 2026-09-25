@@ -9,3 +9,5 @@ pubspec.lock
 .vercel/
 .idea/
 *.iml
+
+.supabase-secrets.env
