@@ -1,0 +1,21 @@
+name: flutter_ecommerce_app
+description: Dyqani Online SQ/EN me Supabase dhe panel administratori.
+publish_to: "none"
+version: 2.0.0+2
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  supabase_flutter: ^2.8.3
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
