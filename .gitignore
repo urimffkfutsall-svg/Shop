@@ -11,3 +11,6 @@ pubspec.lock
 *.iml
 
 .supabase-secrets.env
+
+lib_before_phase3/
+ios/Flutter/ephemeral/
