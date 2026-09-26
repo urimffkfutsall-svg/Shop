@@ -134,6 +134,145 @@ class StoreService {
     return Map<String, dynamic>.from(data);
   }
 
+  Future<List<Map<String, dynamic>>> adminProducts({String search = ''}) async {
+    if (!enabled) return [];
+    dynamic query =
+        client.from('products').select('*,categories(name),product_images(*)');
+    final normalized = search
+        .replaceAll(RegExp(r'[,().]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (normalized.isNotEmpty) {
+      query = query.or(
+        'name_sq.ilike.%$normalized%,sku.ilike.%$normalized%,brand.ilike.%$normalized%',
+      );
+    }
+    final rows = await query.order('created_at', ascending: false).limit(250);
+    return (rows as List).map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  Future<Map<String, dynamic>> saveProductAdmin(
+    String? id,
+    Map<String, dynamic> data,
+  ) async {
+    if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
+    final dynamic row = id == null
+        ? await client.from('products').insert(data).select().single()
+        : await client
+            .from('products')
+            .update(data)
+            .eq('id', id)
+            .select()
+            .single();
+    return Map<String, dynamic>.from(row);
+  }
+
+  Future<void> deleteProductAdmin(String id) async {
+    if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
+    final imageRows = await client
+        .from('product_images')
+        .select('image_url')
+        .eq('product_id', id);
+    await client.from('products').delete().eq('id', id);
+    for (final row in imageRows as List) {
+      final url = row['image_url']?.toString();
+      if (url != null && url.isNotEmpty) await deleteMedia(url);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> adminCategories() async {
+    if (!enabled) return [];
+    final results = await Future.wait([
+      client.from('categories').select().order('sort_order'),
+      client.from('products').select('category_id'),
+    ]);
+    final counts = <String, int>{};
+    for (final row in results[1] as List) {
+      final id = row['category_id']?.toString();
+      if (id != null) counts[id] = (counts[id] ?? 0) + 1;
+    }
+    return (results[0] as List).map((row) {
+      final category = Map<String, dynamic>.from(row);
+      category['product_count'] = counts['${category['id']}'] ?? 0;
+      return category;
+    }).toList();
+  }
+
+  Future<Map<String, dynamic>> saveCategory(
+    String? id,
+    Map<String, dynamic> data,
+  ) async {
+    if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
+    final dynamic row = id == null
+        ? await client.from('categories').insert(data).select().single()
+        : await client
+            .from('categories')
+            .update(data)
+            .eq('id', id)
+            .select()
+            .single();
+    return Map<String, dynamic>.from(row);
+  }
+
+  Future<void> deleteCategory(String id, String? imageUrl) async {
+    if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
+    final products = await client
+        .from('products')
+        .select('id')
+        .eq('category_id', id)
+        .limit(1);
+    if ((products as List).isNotEmpty) {
+      throw Exception(
+        'Kategoria ka produkte. Zhvendosi ato para fshirjes.',
+      );
+    }
+    await client.from('categories').delete().eq('id', id);
+    if (imageUrl != null && imageUrl.isNotEmpty) await deleteMedia(imageUrl);
+  }
+
+  Future<void> addProductImage({
+    required String productId,
+    required String imageUrl,
+    required String altText,
+    required int sortOrder,
+    required bool isPrimary,
+  }) async {
+    if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
+    if (isPrimary) {
+      await client
+          .from('product_images')
+          .update({'is_primary': false}).eq('product_id', productId);
+    }
+    await client.from('product_images').insert({
+      'product_id': productId,
+      'image_url': imageUrl,
+      'alt_text': altText,
+      'sort_order': sortOrder,
+      'is_primary': isPrimary,
+    });
+  }
+
+  Future<void> setPrimaryProductImage(
+    String productId,
+    String imageId,
+  ) async {
+    if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
+    await client
+        .from('product_images')
+        .update({'is_primary': false}).eq('product_id', productId);
+    await client
+        .from('product_images')
+        .update({'is_primary': true})
+        .eq('id', imageId)
+        .eq('product_id', productId);
+  }
+
+  Future<void> deleteProductImage(String imageId, String imageUrl) async {
+    if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
+    await client.from('product_images').delete().eq('id', imageId);
+    if (imageUrl.isNotEmpty) await deleteMedia(imageUrl);
+  }
+
   Future<Map<String, dynamic>?> adminStats() async {
     if (!enabled) return null;
     final data = await client.rpc('admin_dashboard_stats');

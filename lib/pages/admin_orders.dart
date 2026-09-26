@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../state/store_state.dart';
+import 'admin_catalog.dart';
 
 const adminOrange = Color(0xffE65829);
 const orderStatusLabels = <String, String>{
@@ -25,9 +26,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   @override
   Widget build(BuildContext context) {
     final wide = MediaQuery.sizeOf(context).width >= 900;
-    final content = section == 0
-        ? AdminStatsView(state: widget.state)
-        : AdminOrdersView(state: widget.state);
+    final content = switch (section) {
+      0 => AdminStatsView(state: widget.state),
+      1 => AdminOrdersView(state: widget.state),
+      2 => AdminProductsView(state: widget.state),
+      _ => AdminCategoriesView(state: widget.state),
+    };
     return Scaffold(
       appBar: AppBar(
         title: const Text('Administrimi'),
@@ -101,14 +105,20 @@ class AdminMenu extends StatelessWidget {
             onTap: () => onSelect(1),
           ),
           const Divider(),
-          const ListTile(
-              enabled: false,
-              leading: Icon(Icons.inventory_2_outlined),
-              title: Text('Produktet — së shpejti')),
-          const ListTile(
-              enabled: false,
-              leading: Icon(Icons.category_outlined),
-              title: Text('Kategoritë — së shpejti')),
+          ListTile(
+            selected: selected == 2,
+            selectedColor: adminOrange,
+            leading: const Icon(Icons.inventory_2_outlined),
+            title: const Text('Produktet'),
+            onTap: () => onSelect(2),
+          ),
+          ListTile(
+            selected: selected == 3,
+            selectedColor: adminOrange,
+            leading: const Icon(Icons.category_outlined),
+            title: const Text('Kategoritë'),
+            onTap: () => onSelect(3),
+          ),
         ],
       );
 }
