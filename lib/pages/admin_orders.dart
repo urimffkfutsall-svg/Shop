@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../state/store_state.dart';
 import 'admin_catalog.dart';
+import 'admin_homepage.dart';
 
 const adminOrange = Color(0xffE65829);
 const orderStatusLabels = <String, String>{
@@ -30,7 +31,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       0 => AdminStatsView(state: widget.state),
       1 => AdminOrdersView(state: widget.state),
       2 => AdminProductsView(state: widget.state),
-      _ => AdminCategoriesView(state: widget.state),
+      3 => AdminCategoriesView(state: widget.state),
+      4 => AdminHomepageContentView(
+          state: widget.state,
+          kind: AdminContentKind.hero,
+        ),
+      5 => AdminHomepageContentView(
+          state: widget.state,
+          kind: AdminContentKind.sponsors,
+        ),
+      6 => AdminHomepageContentView(
+          state: widget.state,
+          kind: AdminContentKind.ads,
+        ),
+      _ => AdminHomepageSectionsView(state: widget.state),
     };
     return Scaffold(
       appBar: AppBar(
@@ -118,6 +132,35 @@ class AdminMenu extends StatelessWidget {
             leading: const Icon(Icons.category_outlined),
             title: const Text('Kategoritë'),
             onTap: () => onSelect(3),
+          ),
+          const Divider(),
+          ListTile(
+            selected: selected == 4,
+            selectedColor: adminOrange,
+            leading: const Icon(Icons.slideshow_outlined),
+            title: const Text('Slideshow'),
+            onTap: () => onSelect(4),
+          ),
+          ListTile(
+            selected: selected == 5,
+            selectedColor: adminOrange,
+            leading: const Icon(Icons.handshake_outlined),
+            title: const Text('Sponsorët'),
+            onTap: () => onSelect(5),
+          ),
+          ListTile(
+            selected: selected == 6,
+            selectedColor: adminOrange,
+            leading: const Icon(Icons.campaign_outlined),
+            title: const Text('Reklamat'),
+            onTap: () => onSelect(6),
+          ),
+          ListTile(
+            selected: selected == 7,
+            selectedColor: adminOrange,
+            leading: const Icon(Icons.web_outlined),
+            title: const Text('Seksionet e ballinës'),
+            onTap: () => onSelect(7),
           ),
         ],
       );

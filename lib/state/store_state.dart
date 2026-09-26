@@ -7,6 +7,7 @@ import '../services/store_service.dart';
 class StoreState extends ChangeNotifier {
   final service = StoreService();
   bool sq = true, loading = true, admin = false;
+  int contentRevision = 0;
   String? errorMessage;
   List<Product> products = [];
   List<CategoryModel> categories = [];
@@ -34,6 +35,7 @@ class StoreState extends ChangeNotifier {
       errorMessage = 'Diçka nuk shkoi siç duhet. Ju lutemi provoni përsëri.';
     }
     loading = false;
+    contentRevision++;
     notifyListeners();
   }
 

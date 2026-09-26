@@ -43,11 +43,8 @@ class StoreService {
 
   Future<List<HomepageSectionModel>> homepageSections() async {
     if (!enabled) return const [];
-    final rows = await client
-        .from('homepage_sections')
-        .select()
-        .eq('is_visible', true)
-        .order('sort_order');
+    final rows =
+        await client.from('homepage_sections').select().order('sort_order');
     return (rows as List)
         .map((e) => HomepageSectionModel.fromMap(Map<String, dynamic>.from(e)))
         .toList();
@@ -271,6 +268,76 @@ class StoreService {
     if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
     await client.from('product_images').delete().eq('id', imageId);
     if (imageUrl.isNotEmpty) await deleteMedia(imageUrl);
+  }
+
+  Future<List<Map<String, dynamic>>> adminHeroSlides() async {
+    if (!enabled) return [];
+    final rows = await client.from('hero_slides').select().order('sort_order');
+    return (rows as List).map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> adminSponsors() async {
+    if (!enabled) return [];
+    final rows = await client.from('sponsors').select().order('sort_order');
+    return (rows as List).map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> adminAdCampaigns() async {
+    if (!enabled) return [];
+    final rows = await client.from('ad_campaigns').select().order('sort_order');
+    return (rows as List).map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  String _homepageTable(String kind) => switch (kind) {
+        'hero' => 'hero_slides',
+        'sponsors' => 'sponsors',
+        'ads' => 'ad_campaigns',
+        _ => throw Exception('Lloji i përmbajtjes nuk është valid.'),
+      };
+
+  Future<void> saveHomepageContent({
+    required String kind,
+    required String? id,
+    required Map<String, dynamic> data,
+  }) async {
+    if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
+    final table = _homepageTable(kind);
+    if (id == null) {
+      await client.from(table).insert(data);
+    } else {
+      await client.from(table).update(data).eq('id', id);
+    }
+  }
+
+  Future<void> deleteHomepageContent({
+    required String kind,
+    required String id,
+    required List<String> mediaUrls,
+  }) async {
+    if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
+    final table = _homepageTable(kind);
+    await client.from(table).delete().eq('id', id);
+    for (final url in mediaUrls.toSet()) {
+      if (url.isNotEmpty) await deleteMedia(url);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> adminHomepageSections() async {
+    if (!enabled) return [];
+    final rows =
+        await client.from('homepage_sections').select().order('sort_order');
+    return (rows as List).map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  Future<void> saveHomepageSection(
+    String sectionKey,
+    Map<String, dynamic> data,
+  ) async {
+    if (!enabled) throw Exception('Supabase nuk është konfiguruar.');
+    await client
+        .from('homepage_sections')
+        .update(data)
+        .eq('section_key', sectionKey);
   }
 
   Future<Map<String, dynamic>?> adminStats() async {

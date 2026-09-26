@@ -13,7 +13,7 @@ class PremiumHomePage extends StatefulWidget {
 }
 
 class _PremiumHomePageState extends State<PremiumHomePage> {
-  List<Map<String, dynamic>> slides = [], sponsors = [];
+  List<Map<String, dynamic>> slides = [], sponsors = [], ads = [];
   bool loading = true;
   @override
   void initState() {
@@ -26,11 +26,13 @@ class _PremiumHomePageState extends State<PremiumHomePage> {
       final c = Supabase.instance.client;
       final r = await Future.wait([
         c.from('hero_slides').select().order('sort_order'),
-        c.from('sponsors').select().order('sort_order')
+        c.from('sponsors').select().order('sort_order'),
+        c.from('ad_campaigns').select().order('sort_order')
       ]);
       slides = (r[0] as List).map((e) => Map<String, dynamic>.from(e)).toList();
       sponsors =
           (r[1] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+      ads = (r[2] as List).map((e) => Map<String, dynamic>.from(e)).toList();
     } catch (_) {}
     if (mounted) setState(() => loading = false);
   }
@@ -43,54 +45,195 @@ class _PremiumHomePageState extends State<PremiumHomePage> {
             .compareTo(a.createdAt ?? DateTime(2000)));
     final featured = s.products.where((p) => p.isFeatured).toList();
     final offers = s.products.where((p) => p.discountActive).toList();
-    return ListView(children: [
-      _hero(),
-      const SizedBox(height: 34),
-      _title('Kategoritë', 'Shfletoni sipas kategorisë'),
-      SizedBox(
-          height: 120,
-          child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: s.categories
-                  .where((x) => x.showOnHomepage && x.isActive)
-                  .map((x) => Padding(
-                      padding: const EdgeInsets.only(right: 14),
-                      child: ActionChip(
-                          onPressed: () => s.setCategory(x.id),
-                          avatar: const Icon(Icons.category_outlined),
-                          label: Text(x.name),
-                          padding: const EdgeInsets.all(16))))
-                  .toList())),
-      _products('Produktet e Reja',
-          fresh.isEmpty ? s.products.take(8).toList() : fresh.take(8).toList()),
-      _products('Produktet e Zgjedhura', featured.take(8).toList()),
-      _products('Ofertat', offers.take(8).toList()),
-      _trust(),
-      if (sponsors.isNotEmpty) ...[
-        const SizedBox(height: 36),
-        _title('Partnerët & Sponsorët', 'Partnerët që na besojnë'),
-        SizedBox(
-            height: 100,
-            child: ListView(
+    String sectionTitle(String key, String fallback) {
+      final matches = s.homepageSections.where((section) => section.key == key);
+      return matches.isEmpty || matches.first.title.trim().isEmpty
+          ? fallback
+          : matches.first.title;
+    }
+
+    final configured = [...s.homepageSections]
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final sectionKeys = s.homepageSections.isEmpty
+        ? <String>[
+            'hero',
+            'categories',
+            'new_products',
+            'featured_products',
+            'offers',
+            'trust',
+            'sponsors',
+          ]
+        : configured
+            .where((section) => section.visible)
+            .map((section) => section.key)
+            .toList();
+    final children = <Widget>[];
+
+    for (final key in sectionKeys) {
+      switch (key) {
+        case 'hero':
+          children.add(_hero());
+          if (ads.isNotEmpty) children.add(_advertising());
+          break;
+        case 'categories':
+          children.addAll([
+            const SizedBox(height: 34),
+            _title(
+              sectionTitle('categories', 'Kategoritë'),
+              'Shfletoni sipas kategorisë',
+            ),
+            SizedBox(
+              height: 120,
+              child: ListView(
                 scrollDirection: Axis.horizontal,
-                children: sponsors
-                    .map((x) => InkWell(
-                        onTap: () => _sponsor(c, x),
-                        child: Container(
+                children: s.categories
+                    .where((category) =>
+                        category.showOnHomepage && category.isActive)
+                    .map(
+                      (category) => Padding(
+                        padding: const EdgeInsets.only(right: 14),
+                        child: ActionChip(
+                          onPressed: () => s.setCategory(category.id),
+                          avatar: const Icon(Icons.category_outlined),
+                          label: Text(category.name),
+                          padding: const EdgeInsets.all(16),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ]);
+          break;
+        case 'new_products':
+          children.add(
+            _products(
+              sectionTitle('new_products', 'Produktet e Reja'),
+              fresh.isEmpty
+                  ? s.products.take(8).toList()
+                  : fresh.take(8).toList(),
+            ),
+          );
+          break;
+        case 'featured_products':
+          children.add(
+            _products(
+              sectionTitle('featured_products', 'Produktet e Zgjedhura'),
+              featured.take(8).toList(),
+            ),
+          );
+          break;
+        case 'offers':
+          children.add(
+            _products(
+              sectionTitle('offers', 'Ofertat'),
+              offers.take(8).toList(),
+            ),
+          );
+          break;
+        case 'trust':
+          children.add(_trust());
+          break;
+        case 'sponsors':
+          if (sponsors.isNotEmpty) {
+            children.addAll([
+              const SizedBox(height: 36),
+              _title(
+                sectionTitle('sponsors', 'Partnerët & Sponsorët'),
+                'Partnerët që na besojnë',
+              ),
+              SizedBox(
+                height: 100,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: sponsors
+                      .map(
+                        (sponsor) => InkWell(
+                          onTap: () => _sponsor(c, sponsor),
+                          child: Container(
                             width: 160,
                             margin: const EdgeInsets.only(right: 16),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                                border: Border.all(color: Colors.black12)),
-                            child: Image.network(x['logo_url'] ?? '',
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => Center(
-                                    child: Text(x['company_name'] ?? ''))))))
-                    .toList()))
-      ],
-      _footer()
-    ]);
+                              border: Border.all(color: Colors.black12),
+                            ),
+                            child: Image.network(
+                              sponsor['logo_url'] ?? '',
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Center(
+                                child: Text(sponsor['company_name'] ?? ''),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ]);
+          }
+          break;
+      }
+    }
+    children.add(_footer());
+    return ListView(children: children);
   }
+
+  Widget _advertising() => Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: SizedBox(
+          height: 150,
+          child: PageView(
+            children: ads
+                .map(
+                  (ad) => Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: const Color(0xff1d2635),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(
+                          ad['banner_url'] ?? '',
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        ),
+                        Container(color: Colors.black38),
+                        Padding(
+                          padding: const EdgeInsets.all(22),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                ad['title'] ?? '',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              if ((ad['description'] ?? '').isNotEmpty)
+                                Text(
+                                  ad['description'],
+                                  maxLines: 2,
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+      );
 
   Widget _hero() {
     if (loading)
