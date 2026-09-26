@@ -134,6 +134,50 @@ class StoreService {
     return Map<String, dynamic>.from(data);
   }
 
+  Future<Map<String, dynamic>?> adminStats() async {
+    if (!enabled) return null;
+    final data = await client.rpc('admin_dashboard_stats');
+    return data == null ? null : Map<String, dynamic>.from(data);
+  }
+
+  Future<List<Map<String, dynamic>>> adminOrders(
+      {String search = '', String status = 'all', int limit = 100}) async {
+    if (!enabled) return [];
+    dynamic q = client.from('orders').select();
+    if (status != 'all') q = q.eq('status', status);
+    if (search.isNotEmpty) {
+      final v = search.replaceAll(',', ' ');
+      q = q.or(
+          'order_number.ilike.%$v%,customer_name.ilike.%$v%,phone.ilike.%$v%');
+    }
+    final rows = await q.order('created_at', ascending: false).limit(limit);
+    return (rows as List).map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> adminOrderItems(String orderId) async {
+    if (!enabled) return [];
+    final rows = await client
+        .from('order_items')
+        .select()
+        .eq('order_id', orderId)
+        .order('id');
+    return (rows as List).map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  Future<void> updateOrderStatus(String orderId, String status) async {
+    const allowed = {
+      'new',
+      'confirmed',
+      'preparing',
+      'shipped',
+      'delivered',
+      'cancelled',
+      'completed'
+    };
+    if (!allowed.contains(status)) throw Exception('Statusi nuk është valid.');
+    await client.from('orders').update({'status': status}).eq('id', orderId);
+  }
+
   Future<String> uploadMedia(
       {required Uint8List bytes,
       required String fileName,

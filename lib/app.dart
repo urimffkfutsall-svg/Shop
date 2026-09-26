@@ -4,6 +4,7 @@ import 'models/catalog_models.dart';
 import 'state/store_state.dart';
 import 'pages/checkout_flow.dart';
 import 'pages/premium_home.dart';
+import 'pages/admin_orders.dart';
 
 const orange = Color(0xffE65829);
 const ink = Color(0xff1d2635);
