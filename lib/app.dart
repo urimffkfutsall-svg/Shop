@@ -110,7 +110,7 @@ class _StoreShellState extends State<StoreShell> {
                   label: tr(s, 'Kryefaqja', 'Home')),
               NavigationDestination(
                   icon: const Icon(Icons.search),
-                  label: tr(s, 'Kërko', 'Search')),
+                  label: tr(s, 'KÃ«rko', 'Search')),
               NavigationDestination(
                   icon: Badge(
                       label: Text('${s.cartCount}'),
@@ -119,7 +119,7 @@ class _StoreShellState extends State<StoreShell> {
                   label: tr(s, 'Shporta', 'Cart')),
               NavigationDestination(
                   icon: const Icon(Icons.favorite_border),
-                  label: tr(s, 'Të preferuara', 'Favorites')),
+                  label: tr(s, 'TÃ« preferuara', 'Favorites')),
             ]));
   }
 
@@ -130,7 +130,8 @@ class _StoreShellState extends State<StoreShell> {
       if (ok != true) return;
     }
     if (c.mounted)
-      Navigator.push(c, MaterialPageRoute(builder: (_) => AdminPage(state: s)));
+      Navigator.push(
+          c, MaterialPageRoute(builder: (_) => AdminDashboardPage(state: s)));
   }
 
   void _detail(BuildContext c, StoreState s, Product p) => showModalBottomSheet(
@@ -210,7 +211,7 @@ class HomePage extends StatelessWidget {
                 onChanged: state.search,
                 decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.search),
-                    hintText: tr(state, 'Kërko produkte', 'Search products'),
+                    hintText: tr(state, 'KÃ«rko produkte', 'Search products'),
                     filled: true,
                     fillColor: const Color(0xffeef0ef),
                     border: OutlineInputBorder(
@@ -226,7 +227,7 @@ class HomePage extends StatelessWidget {
             CategoryChip(
                 state: state,
                 keyName: 'all',
-                label: tr(state, 'Të gjitha', 'All'),
+                label: tr(state, 'TÃ« gjitha', 'All'),
                 icon: Icons.grid_view_rounded),
             ...state.categories.where((x) => x.isActive).map((x) =>
                 CategoryChip(
@@ -243,8 +244,8 @@ class HomePage extends StatelessWidget {
         Padding(
             padding: const EdgeInsets.all(50),
             child: Center(
-                child: Text(tr(
-                    state, 'Nuk u gjet asnjë produkt.', 'No products found.'))))
+                child: Text(tr(state, 'Nuk u gjet asnjÃ« produkt.',
+                    'No products found.'))))
       else
         LayoutBuilder(builder: (c, b) {
           final wide = b.maxWidth > 700;
@@ -357,23 +358,23 @@ class ProductCard extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                               fontSize: 24, fontWeight: FontWeight.w800)),
-                      Text(tr(state, 'Në trend tani', 'Trending now'),
+                      Text(tr(state, 'NÃ« trend tani', 'Trending now'),
                           style: const TextStyle(
                               color: orange,
                               fontSize: 17,
                               fontWeight: FontWeight.w700)),
                       Column(children: [
                         if (product.discountActive)
-                          Text('€${product.price.toStringAsFixed(2)}',
+                          Text('â‚¬${product.price.toStringAsFixed(2)}',
                               style: const TextStyle(
                                   decoration: TextDecoration.lineThrough,
                                   color: muted)),
-                        Text('€${product.finalPrice.toStringAsFixed(2)}',
+                        Text('â‚¬${product.finalPrice.toStringAsFixed(2)}',
                             style: const TextStyle(
                                 fontSize: 26, fontWeight: FontWeight.w800)),
                         Text(
                             product.inStock
-                                ? tr(state, 'Në stok', 'In stock')
+                                ? tr(state, 'NÃ« stok', 'In stock')
                                 : tr(state, 'Nuk ka stok', 'Out of stock'),
                             style: TextStyle(
                                 color:
@@ -457,10 +458,10 @@ class _ProductDetailState extends State<ProductDetail> {
                                           fontWeight: FontWeight.w800,
                                           color: orange))
                                 ]),
-                            const Text('★★★★☆',
+                            const Text('â˜…â˜…â˜…â˜…â˜†',
                                 style: TextStyle(
                                     color: Color(0xfffbba01), fontSize: 22)),
-                            SectionTitle(tr(s, 'Madhësitë e disponueshme',
+                            SectionTitle(tr(s, 'MadhÃ«sitÃ« e disponueshme',
                                 'Available sizes')),
                             Wrap(
                                 spacing: 10,
@@ -510,7 +511,7 @@ class _ProductDetailState extends State<ProductDetail> {
                                                         spreadRadius: 2)
                                                 ]))))
                                     .toList()),
-                            SectionTitle(tr(s, 'Përshkrimi', 'Description')),
+                            SectionTitle(tr(s, 'PÃ«rshkrimi', 'Description')),
                             Text(p.description(s.sq),
                                 style: const TextStyle(
                                     fontSize: 16, height: 1.5, color: muted)),
@@ -528,13 +529,13 @@ class _ProductDetailState extends State<ProductDetail> {
                                           SnackBar(
                                               content: Text(tr(
                                                   s,
-                                                  'Produkti u shtua në shportë',
+                                                  'Produkti u shtua nÃ« shportÃ«',
                                                   'Product added to cart'))));
                                     },
                                     icon:
                                         const Icon(Icons.shopping_bag_outlined),
-                                    label: Text(tr(
-                                        s, 'Shto në shportë', 'Add to cart'))))
+                                    label: Text(tr(s, 'Shto nÃ« shportÃ«',
+                                        'Add to cart'))))
                           ]))
                 ])));
   }
@@ -571,8 +572,8 @@ class CartPage extends StatelessWidget {
         Padding(
             padding: const EdgeInsets.all(60),
             child: Center(
-                child: Text(
-                    tr(state, 'Shporta është bosh.', 'Your cart is empty.')))),
+                child: Text(tr(
+                    state, 'Shporta Ã«shtÃ« bosh.', 'Your cart is empty.')))),
       ...rows.map((e) {
         final p = state.products.firstWhere((x) => x.id == e.key);
         return Card(
@@ -583,7 +584,7 @@ class CartPage extends StatelessWidget {
                 leading: productImage(p, width: 74),
                 title: Text(p.name(state.sq),
                     style: const TextStyle(fontWeight: FontWeight.w800)),
-                subtitle: Text('€ ${p.finalPrice.toStringAsFixed(2)}',
+                subtitle: Text('â‚¬ ${p.finalPrice.toStringAsFixed(2)}',
                     style: const TextStyle(color: orange)),
                 trailing: Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
@@ -641,7 +642,8 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
   String? error;
   @override
   Widget build(BuildContext c) => AlertDialog(
-          title: Text(tr(widget.state, 'Përfundo porosinë', 'Complete order')),
+          title:
+              Text(tr(widget.state, 'PÃ«rfundo porosinÃ«', 'Complete order')),
           content: SizedBox(
               width: 380,
               child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -672,7 +674,7 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
                             !email.text.contains('@')) {
                           setState(() => error = tr(
                               widget.state,
-                              'Plotëso të dhënat e sakta.',
+                              'PlotÃ«so tÃ« dhÃ«nat e sakta.',
                               'Enter valid details.'));
                           return;
                         }
@@ -694,7 +696,8 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text(tr(widget.state, 'Dërgo porosinë', 'Submit order')))
+                    : Text(
+                        tr(widget.state, 'DÃ«rgo porosinÃ«', 'Submit order')))
           ]);
 }
 
@@ -712,7 +715,7 @@ class FavoritesPage extends StatelessWidget {
           Padding(
               padding: const EdgeInsets.all(60),
               child: Center(
-                  child: Text(tr(state, 'Nuk ka produkte të preferuara.',
+                  child: Text(tr(state, 'Nuk ka produkte tÃ« preferuara.',
                       'No favorite products.'))))
         else
           ...state.favoriteProducts.map((p) => SizedBox(
@@ -779,7 +782,7 @@ class _AdminLoginState extends State<AdminLogin> {
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text(tr(widget.state, 'Kyçu', 'Log in')))
+                    : Text(tr(widget.state, 'KyÃ§u', 'Log in')))
           ]);
 }
 
@@ -823,7 +826,7 @@ class AdminPage extends StatelessWidget {
                         title: Text(p.name(state.sq),
                             style:
                                 const TextStyle(fontWeight: FontWeight.w800)),
-                        subtitle: Text('€${p.finalPrice.toStringAsFixed(2)}'),
+                        subtitle: Text('â‚¬${p.finalPrice.toStringAsFixed(2)}'),
                         trailing: Wrap(children: [
                           IconButton(
                               onPressed: () => _edit(c, p),
@@ -907,7 +910,7 @@ class _ProductEditorState extends State<ProductEditor> {
                     controller: price,
                     keyboardType: TextInputType.number,
                     decoration:
-                        const InputDecoration(labelText: 'Çmimi / Price')),
+                        const InputDecoration(labelText: 'Ã‡mimi / Price')),
                 DropdownButtonFormField(
                     value: image,
                     decoration: const InputDecoration(labelText: 'Image'),
@@ -919,7 +922,7 @@ class _ProductEditorState extends State<ProductEditor> {
                     controller: dsq,
                     maxLines: 2,
                     decoration:
-                        const InputDecoration(labelText: 'Përshkrimi SQ')),
+                        const InputDecoration(labelText: 'PÃ«rshkrimi SQ')),
                 TextField(
                     controller: den,
                     maxLines: 2,
